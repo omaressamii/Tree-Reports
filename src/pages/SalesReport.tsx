@@ -9,6 +9,7 @@ import axios from 'axios';
 export default function SalesReport() {
   const [data, setData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [columns, setColumns] = useState<string[]>([]);
   const [summary, setSummary] = useState({ total: 0, net: 0, qty: 0 });
   const location = useLocation();
 
@@ -16,12 +17,6 @@ export default function SalesReport() {
   const isDaily = location.pathname.includes('daily');
   const reportTitle = isHourly ? 'تقرير المبيعات بالساعات' : isDaily ? 'تقرير المبيعات اليومية' : 'تقرير المبيعات التفصيلي';
   
-  const columns = isHourly 
-    ? ["الساعة", "قيمة المبيعات", "عدد القطع", "عدد الفواتير"]
-    : isDaily
-    ? ["الفرع", "التاريخ", "صافي اليومية", "مرتجعات"]
-    : ["المنتج", "كود الصنف", "القسم", "الكمية المباعة", "سعر الوحدة", "الإجمالي", "الضريبة", "الصافي"];
-
   useEffect(() => {
     handleSearch({});
   }, [location.pathname]);
@@ -33,10 +28,22 @@ export default function SalesReport() {
       const response = await axios.post('/api/reports/sales', { reportType, filters });
       
       if (response.data.success) {
-        setData(response.data.data);
+        const fetchedData = response.data.data as any[];
+        setData(fetchedData);
+        
+        if (fetchedData.length > 0) {
+          setColumns(Object.keys(fetchedData[0]));
+        } else {
+          setColumns(isHourly 
+            ? ["الساعة", "قيمة المبيعات", "عدد القطع", "عدد الفواتير"]
+            : isDaily
+            ? ["الفرع", "التاريخ", "صافي اليومية", "مرتجعات"]
+            : ["المنتج", "كود الصنف", "القسم", "الكمية المباعة", "سعر الوحدة", "الإجمالي", "الضريبة", "الصافي"]
+          );
+        }
         
         // Calculate dynamic summary
-        const newSummary = (response.data.data as any[]).reduce((acc, row) => ({
+        const newSummary = fetchedData.reduce((acc, row) => ({
           total: acc.total + (row["الإجمالي"] || row["صافي اليومية"] || row["قيمة المبيعات"] || 0),
           net: acc.net + (row["الصافي"] || row["صافي اليومية"] || row["قيمة المبيعات"] || 0),
           qty: acc.qty + (row["الكمية المباعة"] || row["عدد القطع"] || 0),

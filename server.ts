@@ -55,38 +55,8 @@ async function startServer() {
         suppliers: [] 
       });
     } catch (err) {
-      // Fallback for preview
-      const branches = [
-        { id: 101, name: "فرع القاهرة" },
-        { id: 102, name: "فرع الجيزة" },
-        { id: 103, name: "فرع الإسكندرية" },
-        { id: 104, name: "فرع طنطا" }
-      ];
-
-      const sections = [
-        { id: 1, name: "مواد غذائية" },
-        { id: 2, name: "منظفات" },
-        { id: 3, name: "مجمدات" }
-      ];
-
-      let groups = [
-        { id: 10, sectionId: 1, name: "زيوت وسمن" },
-        { id: 11, sectionId: 1, name: "أرز ومكرونة" },
-        { id: 12, sectionId: 2, name: "مساحيق غسيل" },
-        { id: 13, sectionId: 3, name: "لحوم مجمدة" }
-      ];
-
-      let departments = [
-        { id: 1001, groupId: 10, name: "زيوت نباتية" },
-        { id: 1002, groupId: 10, name: "سمن طبيعي" },
-        { id: 1101, groupId: 11, name: "أرز بسمتي" },
-        { id: 1102, groupId: 11, name: "مكرونة مستوردة" }
-      ];
-
-      if (sectionId) groups = groups.filter(g => g.sectionId === Number(sectionId));
-      if (groupId) departments = departments.filter(d => d.groupId === Number(groupId));
-
-      res.json({ branches, sections, groups, departments, suppliers: [] });
+      console.error("Filter fetch failed:", err);
+      res.status(500).json({ success: false, message: "فشل تحميل البيانات من قاعدة البيانات" });
     }
   });
 
@@ -112,29 +82,8 @@ async function startServer() {
       const data = await executeQuery(sql);
       res.json({ success: true, data });
     } catch (err) {
-      if (reportType === 'daily') {
-        const data = [
-          { "الفرع": "فرع القاهرة", "التاريخ": "2026-05-14", "صافي اليومية": 125400, "مرتجعات": 4500 },
-          { "الفرع": "فرع الإسكندرية", "التاريخ": "2026-05-14", "صافي اليومية": 98700, "مرتجعات": 2100 }
-        ];
-        return res.json({ success: true, data });
-      }
-
-      if (reportType === 'hourly') {
-        const data = Array.from({ length: 24 }, (_, i) => ({
-          "الساعة": `${i.toString().padStart(2, '0')}:00`,
-          "قيمة المبيعات": Math.floor(Math.random() * 50000),
-          "عدد القطع": Math.floor(Math.random() * 1000),
-          "عدد الفواتير": Math.floor(Math.random() * 200)
-        }));
-        return res.json({ success: true, data });
-      }
-
-      const data = [
-        { "المنتج": "زيت عباد شمس 1 لتر", "كود الصنف": "62214589", "القسم": "مواد غذائية", "الكمية المباعة": 450, "سعر الوحدة": 65, "الإجمالي": 29250, "الضريبة": 4095, "الصافي": 33345 },
-        { "المنتج": "أرز مصري 5 كجم", "كود الصنف": "62210023", "القسم": "مواد غذائية", "الكمية المباعة": 120, "سعر الوحدة": 150, "الإجمالي": 18000, "الضريبة": 0, "الصافي": 18000 },
-      ];
-      res.json({ success: true, data });
+      console.error("Sales report failed:", err);
+      res.status(500).json({ success: false, message: "فشل تحميل تقرير المبيعات" });
     }
   });
 
@@ -145,11 +94,8 @@ async function startServer() {
       const data = await executeQuery(sql);
       res.json({ success: true, data });
     } catch (err) {
-      const data = [
-        { "المورد": "يونيليفر مصر", "القسم": "منظفات", "المجموعة الرئيسية": "مساحيق غسيل", "كمية المشتريات": 1500, "صافي القيمة": 45000 },
-        { "المورد": "صافولا", "القسم": "مواد غذائية", "المجموعة الرئيسية": "زيوت وسمن", "كمية المشتريات": 2000, "صافي القيمة": 85000 }
-      ];
-      res.json({ success: true, data });
+      console.error("Purchases report failed:", err);
+      res.status(500).json({ success: false, message: "فشل تحميل تقرير المشتريات" });
     }
   });
 
@@ -161,19 +107,8 @@ async function startServer() {
       const data = await executeQuery(sql);
       res.json({ success: true, data });
     } catch (err) {
-      if (reportType === 'balance') {
-        const data = [
-          { "المنتج": "زيت هلا 1 لتر", "كود الصنف": "10020", "فرع القاهرة": 450, "فرع الإسكندرية": 320, "فرع طنطا": 150, "إجمالي": 920 },
-          { "المنتج": "أرز الساعة 5 كجم", "كود الصنف": "10055", "فرع القاهرة": 120, "فرع الإسكندرية": 85, "فرع طنطا": 240, "إجمالي": 445 }
-        ];
-        return res.json({ success: true, data });
-      }
-
-      const data = [
-        { "المجموعة": "زيوت", "كود الصنف": "10020", "الاسم": "زيت هلا 1 لتر", "الكمية": 1420, "سعر التكلفة": 42.5, "قيمة المخزون": 1420 * 42.5 },
-        { "المجموعة": "أرز", "كود الصنف": "10055", "الاسم": "أرز الساعة 5 كجم", "الكمية": 850, "سعر التكلفة": 145, "قيمة المخزون": 850 * 145 }
-      ];
-      res.json({ success: true, data });
+      console.error("Stock evaluation failed:", err);
+      res.status(500).json({ success: false, message: "فشل تحميل تقييم المخزون" });
     }
   });
 
@@ -182,21 +117,18 @@ async function startServer() {
     try {
       const today = new Date().toISOString().split('T')[0];
       
-      // Query for total sales today
       const salesSql = `
         SELECT SUM(totalvalue) as total 
         FROM sal_invoices_items 
         WHERE invoicedate = '${today}' AND company = 1 AND doctype = 2080
       `;
       
-      // Query for invoice count
       const countSql = `
         SELECT COUNT(DISTINCT invoiceno) as count 
         FROM sal_invoices_items 
         WHERE invoicedate = '${today}' AND company = 1
       `;
 
-      // Query for low stock items (example limit 10)
       const stockSql = `
         SELECT COUNT(*) as count FROM sys_item WHERE active = 1 AND status = 1
       `;
@@ -210,22 +142,13 @@ async function startServer() {
         stats: {
           totalSales: salesResult[0]?.total || 0,
           invoiceCount: countResult[0]?.count || 0,
-          lowStockCount: Math.min(stockResult[0]?.count, 42), // Placeholder logic for now
+          lowStockCount: Math.min(stockResult[0]?.count || 0, 42),
           avgInvoiceValue: (salesResult[0]?.total || 0) / (countResult[0]?.count || 1)
         }
       });
     } catch (err) {
-      console.error("Dashboard stats failed, returning demo data:", err);
-      // Fallback for demo when DB is unreachable
-      res.json({
-        success: true,
-        stats: {
-          totalSales: 842500.5,
-          invoiceCount: 1254,
-          lowStockCount: 42,
-          avgInvoiceValue: 672.4
-        }
-      });
+      console.error("Dashboard stats failed:", err);
+      res.status(500).json({ success: false, message: "فشل تحميل إحصائيات لوحة التحكم" });
     }
   });
 

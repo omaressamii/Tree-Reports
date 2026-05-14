@@ -8,9 +8,8 @@ import axios from 'axios';
 export default function PurchasesReport() {
   const [data, setData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [columns, setColumns] = useState<string[]>([]);
   const [stats, setStats] = useState({ totalVal: 0, totalQty: 0 });
-
-  const columns = ["المورد", "القسم", "المجموعة الرئيسية", "كمية المشتريات", "صافي القيمة"];
 
   useEffect(() => {
     handleSearch({});
@@ -21,8 +20,16 @@ export default function PurchasesReport() {
     try {
       const response = await axios.post('/api/reports/purchases', { filters });
       if (response.data.success) {
-        setData(response.data.data);
-        const totals = (response.data.data as any[]).reduce((acc, row) => ({
+        const fetchedData = response.data.data as any[];
+        setData(fetchedData);
+        
+        if (fetchedData.length > 0) {
+          setColumns(Object.keys(fetchedData[0]));
+        } else {
+          setColumns(["المورد", "القسم", "المجموعة الرئيسية", "كمية المشتريات", "صافي القيمة"]);
+        }
+
+        const totals = fetchedData.reduce((acc, row) => ({
           totalVal: acc.totalVal + (row["الإجمالي"] || row["صافي القيمة"] || 0),
           totalQty: acc.totalQty + (row["كمية المشتريات"] || 0),
         }), { totalVal: 0, totalQty: 0 });
@@ -39,7 +46,7 @@ export default function PurchasesReport() {
     <div className="space-y-6">
       <FilterBar onSearch={handleSearch} />
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <PurchasesStatCard 
           label="إجمالي قيمة المشتريات" 
           value={stats.totalVal} 
@@ -52,18 +59,6 @@ export default function PurchasesReport() {
           unit="قطعة"
           icon={<Truck className="w-5 h-5" />} 
           color="emerald"
-        />
-        <PurchasesStatCard 
-          label="الموردين النشطين" 
-          value={12} 
-          icon={<History className="w-5 h-5" />} 
-          color="orange"
-        />
-        <PurchasesStatCard 
-          label="رصيد موردين معلق" 
-          value={45800} 
-          icon={<Landmark className="w-5 h-5" />} 
-          color="purple"
         />
       </div>
 

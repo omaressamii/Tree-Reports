@@ -25,16 +25,6 @@ import { cn, formatNumber } from '../lib/utils';
 import { motion } from 'motion/react';
 import axios from 'axios';
 
-const mockDailySales = [
-  { day: 'السبت', value: 45000, prev: 38000 },
-  { day: 'الأحد', value: 52000, prev: 48000 },
-  { day: 'الاثنين', value: 48000, prev: 51000 },
-  { day: 'الثلاثاء', value: 61000, prev: 44000 },
-  { day: 'الأربعاء', value: 55000, prev: 58000 },
-  { day: 'الخميس', value: 72000, prev: 65000 },
-  { day: 'الجمعة', value: 85000, prev: 79000 },
-];
-
 export default function Home() {
   const [stats, setStats] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,8 +57,8 @@ export default function Home() {
     <div className="space-y-6">
       {/* Welcome Header */}
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">أهلاً بك مجدداً، مدير النظام 👋</h1>
-        <p className="text-slate-500">إليك نظرة سريعة على أداء العمليات اليوم.</p>
+        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">أهلاً بك، مدير النظام 👋</h1>
+        <p className="text-slate-500">إليك نظرة سريعة على أداء العمليات اليوم من قاعدة البيانات.</p>
       </div>
 
       {/* Quick Stats Grid */}
@@ -76,19 +66,17 @@ export default function Home() {
         <StatCard
           title="إجمالي مبيعات اليوم"
           value={stats?.totalSales || 0}
-          trend={12.5}
           icon={<TrendingUp className="w-6 h-6" />}
           color="blue"
         />
         <StatCard
-          title="عدد الفواتير"
+          title="عدد الفواتير اليوم"
           value={stats?.invoiceCount || 0}
-          trend={-2.4}
           icon={<ShoppingCart className="w-6 h-6" />}
           color="emerald"
         />
         <StatCard
-          title="أصناف وصلت للحد الأدنى"
+          title="أصناف نشطة"
           value={stats?.lowStockCount || 0}
           icon={<Package className="w-6 h-6" />}
           color="orange"
@@ -96,83 +84,21 @@ export default function Home() {
         <StatCard
           title="متوسط قيمة الفاتورة"
           value={stats?.avgInvoiceValue || 0}
-          trend={5.2}
           icon={<Users className="w-6 h-6" />}
           color="purple"
         />
       </div>
 
-      {/* Main Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 dashboard-card p-6 min-h-[400px]">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="font-bold text-lg dark:text-white">أداء المبيعات الأسبوعي</h3>
-            <div className="flex gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-brand-light-blue" />
-                <span className="text-xs text-slate-500">الأسبوع الحالي</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-slate-300" />
-                <span className="text-xs text-slate-500">الأسبوع السابق</span>
-              </div>
-            </div>
+      {/* Real-time stats or Empty state message */}
+      {!stats && (
+        <div className="dashboard-card p-12 flex flex-col items-center justify-center text-center">
+          <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+            <FileText className="w-8 h-8 text-slate-400" />
           </div>
-          <div className="h-[300px] w-full pr-8">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={mockDailySales}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                <XAxis
-                  dataKey="day"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#94A3B8', fontSize: 12 }}
-                  dy={10}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#94A3B8', fontSize: 12 }}
-                  dx={-10}
-                />
-                <Tooltip
-                  cursor={{ fill: '#F1F5F9' }}
-                  contentStyle={{
-                    borderRadius: '12px',
-                    border: 'none',
-                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                  }}
-                />
-                <Bar dataKey="value" fill="#3591FF" radius={[6, 6, 0, 0]} barSize={32} />
-                <Bar dataKey="prev" fill="#CBD5E1" radius={[6, 6, 0, 0]} barSize={32} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <h3 className="text-lg font-bold dark:text-white mb-2">لا توجد بيانات متاحة حالياً</h3>
+          <p className="text-slate-500 max-w-md">تأكد من اتصال قاعدة البيانات ووجود مبيعات مسجلة لتاريخ اليوم.</p>
         </div>
-
-        <div className="space-y-6">
-          <div className="dashboard-card p-6 flex flex-col h-[280px]">
-            <h3 className="font-bold text-md mb-6 dark:text-white flex items-center justify-between">
-              <span>توزيع المبيعات</span>
-              <span className="text-[10px] text-slate-400 font-normal">آخر 30 يوم</span>
-            </h3>
-            <div className="flex-1 flex flex-col justify-center gap-4">
-              <DepartmentProgress name="المواد الغذائية" percentage={65} color="bg-blue-500" />
-              <DepartmentProgress name="المنظفات" percentage={32} color="bg-orange-500" />
-              <DepartmentProgress name="أخرى" percentage={24} color="bg-slate-500" />
-            </div>
-          </div>
-
-          <div className="dashboard-card p-6 flex-1">
-             <h3 className="font-bold text-md mb-4 dark:text-white">تقارير حديثة الاستخدام</h3>
-             <div className="space-y-3">
-                <RecentReportItem title="مبيعات فرع القاهرة" time="منذ 5 دقائق" />
-                <RecentReportItem title="تقييم المخزون العام" time="منذ 22 دقيقة" />
-                <RecentReportItem title="مرتجع مشتريات يونيليفر" time="منذ ساعة" />
-             </div>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
